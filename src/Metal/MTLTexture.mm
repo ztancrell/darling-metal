@@ -121,6 +121,16 @@
 	return MTLTextureSwizzleChannelsFromIndium(_texture->swizzle());
 }
 
+- (struct __IOSurface*)iosurface
+{
+	return NULL;
+}
+
+- (NSUInteger)iosurfacePlane
+{
+	return 0;
+}
+
 //
 // methods
 //

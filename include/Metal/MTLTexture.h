@@ -72,6 +72,11 @@ MTLTextureSwizzleChannels MTLTextureSwizzleChannelsMake(MTLTextureSwizzle red, M
 @property(readonly, getter=isShareable) BOOL shareable;
 @property(readonly, nonatomic) MTLTextureSwizzleChannels swizzle;
 
+/*! The IOSurface this texture was created from, and which plane of it. Nothing here
+ can create a texture from an IOSurface yet, so these are always nil and 0. */
+@property(readonly, nullable) struct __IOSurface* iosurface;
+@property(readonly) NSUInteger iosurfacePlane;
+
 - (id<MTLTexture>)newTextureViewWithPixelFormat: (MTLPixelFormat)pixelFormat;
 
 - (id<MTLTexture>)newTextureViewWithPixelFormat: (MTLPixelFormat)pixelFormat
