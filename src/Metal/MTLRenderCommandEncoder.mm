@@ -356,6 +356,11 @@ MTL_UNSUPPORTED_CLASS
 	std::unordered_map<size_t, Indium::RenderPassColorAttachmentDescriptor> result;
 
 	for (NSNumber* index in _dict) {
+		// An attachment with no texture is an unused slot. Reading colorAttachments[i] creates
+		// the descriptor, so callers that walk every slot leave empty ones behind.
+		if (_dict[index].texture == nil) {
+			continue;
+		}
 		result[[index unsignedIntegerValue]] = [_dict[index] asIndiumDescriptor];
 	}
 
@@ -504,8 +509,9 @@ MTL_UNSUPPORTED_CLASS
 {
 	return Indium::RenderPassDescriptor {
 		[_colorAttachments asContiguousIndiumDescriptors],
-		(_depthAttachment == nil) ? std::nullopt : std::make_optional([_depthAttachment asIndiumDescriptor]),
-		(_stencilAttachment == nil) ? std::nullopt : std::make_optional([_stencilAttachment asIndiumDescriptor]),
+		// as with colour attachments, one with no texture is unused
+		(_depthAttachment == nil || _depthAttachment.texture == nil) ? std::nullopt : std::make_optional([_depthAttachment asIndiumDescriptor]),
+		(_stencilAttachment == nil || _stencilAttachment.texture == nil) ? std::nullopt : std::make_optional([_stencilAttachment asIndiumDescriptor]),
 		((MTLBufferInternal*)_visibilityResultBuffer).buffer,
 		_renderTargetArrayLength,
 		_imageblockSampleLength,
