@@ -123,6 +123,25 @@ destinationBytesPerImage: (NSUInteger)destinationBytesPerImage
 	                 options: MTLBlitOptionNone];
 }
 
+// Metal's own selector for a texture-to-buffer copy with options.
+- (void)copyFromTexture: (id<MTLTexture>)sourceTexture
+             sourceSlice: (NSUInteger)sourceSlice
+             sourceLevel: (NSUInteger)sourceLevel
+            sourceOrigin: (MTLOrigin)sourceOrigin
+              sourceSize: (MTLSize)sourceSize
+                toBuffer: (id<MTLBuffer>)destinationBuffer
+       destinationOffset: (NSUInteger)destinationOffset
+  destinationBytesPerRow: (NSUInteger)destinationBytesPerRow
+destinationBytesPerImage: (NSUInteger)destinationBytesPerImage
+                 options: (MTLBlitOption)options
+{
+	_encoder->copy(((MTLTextureInternal*)sourceTexture).texture, sourceSlice, sourceLevel,
+	               MTLOriginToIndium(sourceOrigin), MTLSizeToIndium(sourceSize),
+	               ((MTLBufferInternal*)destinationBuffer).buffer, destinationOffset,
+	               destinationBytesPerRow, destinationBytesPerImage,
+	               static_cast<Indium::BlitOption>(options));
+}
+
 - (void)copyFromTexture: (id<MTLTexture>)sourceTexture
              sourceSlice: (NSUInteger)sourceSlice
              sourceLevel: (NSUInteger)sourceLevel

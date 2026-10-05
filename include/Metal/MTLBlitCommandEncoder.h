@@ -66,6 +66,17 @@ destinationBytesPerImage: (NSUInteger)destinationBytesPerImage;
              sourceLevel: (NSUInteger)sourceLevel
             sourceOrigin: (MTLOrigin)sourceOrigin
               sourceSize: (MTLSize)sourceSize
+                toBuffer: (id<MTLBuffer>)destinationBuffer
+       destinationOffset: (NSUInteger)destinationOffset
+  destinationBytesPerRow: (NSUInteger)destinationBytesPerRow
+destinationBytesPerImage: (NSUInteger)destinationBytesPerImage
+                 options: (MTLBlitOption)options;
+
+- (void)copyFromTexture: (id<MTLTexture>)sourceTexture
+             sourceSlice: (NSUInteger)sourceSlice
+             sourceLevel: (NSUInteger)sourceLevel
+            sourceOrigin: (MTLOrigin)sourceOrigin
+              sourceSize: (MTLSize)sourceSize
           sourceOptions: (MTLBlitOption)sourceOptions
                 toBuffer: (id<MTLBuffer>)destinationBuffer
        destinationOffset: (NSUInteger)destinationOffset
