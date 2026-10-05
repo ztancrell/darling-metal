@@ -200,6 +200,15 @@ destinationBytesPerImage: (NSUInteger)destinationBytesPerImage
 	               destinationLevel, sliceCount, levelCount);
 }
 
+- (void)synchronizeResource: (id<MTLResource>)resource
+{
+	if (![(id)resource isKindOfClass: [MTLBufferInternal class]]) {
+		[NSException raise: NSInvalidArgumentException
+		            format: @"-[MTLBlitCommandEncoder synchronizeResource:] is only implemented for buffers, not %@", [(id)resource class]];
+	}
+	((MTLBufferInternal*)resource).buffer->synchronize();
+}
+
 - (void)fillBuffer: (id<MTLBuffer>)buffer
               range: (NSRange)range
              value: (uint8_t)value

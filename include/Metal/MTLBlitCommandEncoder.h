@@ -112,7 +112,11 @@ destinationBytesPerImage: (NSUInteger)destinationBytesPerImage
 
 - (void)generateMipmapsForTexture: (id<MTLTexture>)texture;
 
-// TODO: the synchronize methods; indium has no equivalent
+/*! For a buffer, makes what the device wrote visible through -contents. For a texture
+ this raises: reading a texture back (-getBytes:) is not implemented, so there is
+ nothing a texture synchronisation could make true.
+ TODO: -synchronizeTexture:slice:level:, for the same reason. */
+- (void)synchronizeResource: (id<MTLResource>)resource;
 
 @end
 
