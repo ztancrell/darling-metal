@@ -49,6 +49,25 @@ MTL_EXPORT NSArray<id<MTLDevice>>* MTLCopyAllDevices(void);
 MTL_EXPORT NSArray<id<MTLDevice>>* MTLCopyAllDevicesWithObserver(id<NSObject>* observer, MTLDeviceNotificationHandler handler);
 MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
 
+typedef NS_ENUM(NSInteger, MTLGPUFamily) {
+	MTLGPUFamilyApple1 = 1001,
+	MTLGPUFamilyApple2 = 1002,
+	MTLGPUFamilyApple3 = 1003,
+	MTLGPUFamilyApple4 = 1004,
+	MTLGPUFamilyApple5 = 1005,
+	MTLGPUFamilyApple6 = 1006,
+	MTLGPUFamilyApple7 = 1007,
+	MTLGPUFamilyMac1 = 2001,
+	MTLGPUFamilyMac2 = 2002,
+	MTLGPUFamilyCommon1 = 3001,
+	MTLGPUFamilyCommon2 = 3002,
+	MTLGPUFamilyCommon3 = 3003,
+	MTLGPUFamilyMacCatalyst1 = 4001,
+	MTLGPUFamilyMacCatalyst2 = 4002,
+};
+
+typedef void (^MTLNewLibraryCompletionHandler)(id<MTLLibrary> _Nullable library, NSError* _Nullable error);
+
 @protocol MTLDevice <NSObject>
 
 /*!
@@ -72,14 +91,15 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  the hardware that indium cannot answer, and a plausible answer would be worse
  than the error:
 
- -supportsFamily: and -supportsCounterSampling: ask what the underlying GPU can
+ -supportsCounterSampling: asks what the underlying GPU can
  do. MTLGPUFamily is Apple's own numbering of silicon generations (Apple1
  through Apple7, Mac1, Mac2, Common1 through Common3, MacCatalyst1 and 2) and
  Vulkan has no property that maps onto it: deviceName is a free-form string and
  vendorID/deviceID identify the driver, not the GPU family. Returning YES or NO
  would be a claim about real hardware, and on a machine whose GPU genuinely
  supports counter sampling, NO would be a lie that sends the caller down a path
- it did not need to avoid. MTLCounterSamplingPoint likewise enumerates where
+ it did not need to avoid. (-supportsFamily: is declared below, as a local
+ experiment that answers NO unless DARLING_METAL_CLAIM_MAC2 is set; see there.) MTLCounterSamplingPoint likewise enumerates where
  Metal may sample counters, and indium has no query pool at all, so it has no
  sampling point to report on. Neither is declared until indium can say something
  true.
@@ -157,6 +177,27 @@ MTL_EXPORT void MTLRemoveDeviceObserver(id<NSObject> observer);
  * than left to crash: a selector miss on MTLDevice takes the whole app down at
  * startup, which is how this was found. */
 - (BOOL) supportsTextureSampleCount: (NSUInteger)count;
+
+/*! LOCAL EXPERIMENT, not an answer indium can back (see the note above on why this
+ was left out). ANGLE's Metal backend refuses to start unless MTLGPUFamilyMac2 is
+ supported. With DARLING_METAL_CLAIM_MAC2=1 in the environment this returns YES for
+ MTLGPUFamilyMac2 and NO for every other family; without it, NO for all. The claim
+ is not true of this implementation (no multisampling, for one), so callers that
+ rely on it can fail further in. */
+- (BOOL) supportsFamily: (MTLGPUFamily)gpuFamily;
+
+/*! Identifies the device and is stable between runs: the Vulkan vendor ID in the
+ upper 32 bits and the device ID in the lower. Two identical cards share it. */
+@property (readonly) uint64_t registryID;
+
+/*! Whether the Vulkan driver can render to VK_FORMAT_D24_UNORM_S8_UINT. */
+@property (readonly, getter=isDepth24Stencil8PixelFormatSupported) BOOL depth24Stencil8PixelFormatSupported;
+
+/*! Compiles with -newLibraryWithSource:options:error: and then calls the handler,
+ before returning. Metal allows the handler to run on any thread at any time. */
+- (void) newLibraryWithSource: (NSString*)source
+                      options: (nullable MTLCompileOptions*)options
+            completionHandler: (MTLNewLibraryCompletionHandler)completionHandler;
 
 @end
 

@@ -509,6 +509,24 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 	return [[MTLLibraryInternal alloc] initWithLibrary: library device: self];
 }
 
+- (uint64_t) registryID {
+	return _device->vendorAndDeviceID();
+}
+
+- (BOOL) isDepth24Stencil8PixelFormatSupported {
+	return _device->supportsDepth24Stencil8();
+}
+
+- (void) newLibraryWithSource: (NSString*)source
+                      options: (MTLCompileOptions*)options
+            completionHandler: (MTLNewLibraryCompletionHandler)completionHandler
+{
+	NSError* error = nil;
+	id<MTLLibrary> library = [self newLibraryWithSource: source options: options error: &error];
+	completionHandler(library, error);
+	[library release];
+}
+
 - (BOOL) isLowPower {
 	return NO;
 }
@@ -526,6 +544,20 @@ void MTLRemoveDeviceObserver(id<NSObject> observer) {
 MTL_UNSUPPORTED_CLASS
 
 #endif
+
+// LOCAL EXPERIMENT: see MTLDevice.h. Not a claim indium can back.
+- (BOOL) supportsFamily: (MTLGPUFamily)gpuFamily {
+	static BOOL claimMac2;
+	static dispatch_once_t once;
+	dispatch_once(&once, ^{
+		const char* claim = getenv("DARLING_METAL_CLAIM_MAC2");
+		claimMac2 = claim && claim[0] == '1';
+		if (claimMac2) {
+			fprintf(stderr, "DARLING Metal: DARLING_METAL_CLAIM_MAC2 is set; claiming MTLGPUFamilyMac2 support, which this implementation does not fully provide\n");
+		}
+	});
+	return claimMac2 && gpuFamily == MTLGPUFamilyMac2;
+}
 
 - (BOOL) supportsTextureSampleCount: (NSUInteger)count {
 	/* MSL only supports a single sample per pixel; no multisampling is implemented
